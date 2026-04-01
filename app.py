@@ -26,17 +26,19 @@ def get_ai_meal_plan(selected_meals, avoid_food, fridge_input):
     prompt = f"""
     당신은 한국 최고의 요리사입니다. 아래 조건에 맞춰 일주일 식단을 짜주세요.
     - 선택된 끼니: {', '.join(selected_meals)}
-    - 제외할 재료(알러지/싫음): {avoid_food}
-    - 냉장고에 이미 있는 재료: {fridge_input}
+    - 제외할 재료: {avoid_food}
+    - 냉장고 재료: {fridge_input}
     
     [조건]
-    1. '만개의레시피'에서 인기 있는 한국 가정식 메뉴 위주로 선정하세요.
-    2. 결과는 반드시 아래 JSON 형식으로만 출력하세요. (설명 생략, JSON만 출력)
-       Format: [{{"요일": "월", "아침": "메뉴명", "아침재료": "장볼것", "점심": "...", "점심재료": "...", "저녁": "...", "저녁재료": "..."}}]
-    3. 냉장고 재료가 활용되면 재료 칸에 '이미있음'이라고 적으세요.
+    1. 반드시 JSON 형식으로만 출력하세요. 다른 설명은 하지 마세요.
+    2. 형식: [{{"요일": "월", "아침": "메뉴", "아침재료": "장볼것", "점심": "...", "점심재료": "...", "저녁": "...", "저녁재료": "..."}}]
     """
     response = model.generate_content(prompt)
-    json_text = response.text.replace('```json', '').replace('```', '').strip()
+    # AI 응답에서 불필요한 텍스트를 제거하고 순수 JSON만 뽑아내는 안전장치
+    content = response.text
+    start_index = content.find("[")
+    end_index = content.rfind("]") + 1
+    json_text = content[start_index:end_index]
     return json.loads(json_text)
 
 # --- [함수: 쿠팡 수익 링크 생성] ---
