@@ -8,13 +8,18 @@ import json
 import google.generativeai as genai
 
 # --- [1. API 키 설정] ---
-ACCESS_KEY = st.secrets["ACCESS_KEY"]
-SECRET_KEY = st.secrets["SECRET_KEY"]
-GEMINI_API_KEY = st.secrets["GEMINI_API_KEY"]
-
-# 제미나이 설정
-genai.configure(api_key=GEMINI_API_KEY)
-model = genai.GenerativeModel('gemini-1.5-flash')
+# Streamlit Secrets에서 안전하게 가져옵니다.
+try:
+    ACCESS_KEY = st.secrets["ACCESS_KEY"]
+    SECRET_KEY = st.secrets["SECRET_KEY"]
+    GEMINI_API_KEY = st.secrets["GEMINI_API_KEY"]
+    
+    # 제미나이 설정
+    genai.configure(api_key=GEMINI_API_KEY)
+    model = genai.GenerativeModel('gemini-1.5-flash')
+except Exception as e:
+    st.error("⚠️ API 키 설정(Secrets)을 확인해주세요!")
+    st.stop()
 
 # --- [함수: 제미나이 AI 식단 생성] ---
 def get_ai_meal_plan(selected_meals, avoid_food, fridge_input):
@@ -25,8 +30,8 @@ def get_ai_meal_plan(selected_meals, avoid_food, fridge_input):
     - 냉장고에 이미 있는 재료: {fridge_input}
     
     [조건]
-    1. '만개의레시피'에서 가장 인기 있는 한국 가정식 메뉴 위주로 선정하세요.
-    2. 결과는 반드시 아래 JSON 형식으로만 출력하세요. (JSON 외 텍스트 금지)
+    1. '만개의레시피'에서 인기 있는 한국 가정식 메뉴 위주로 선정하세요.
+    2. 결과는 반드시 아래 JSON 형식으로만 출력하세요. (설명 생략, JSON만 출력)
        Format: [{{"요일": "월", "아침": "메뉴명", "아침재료": "장볼것", "점심": "...", "점심재료": "...", "저녁": "...", "저녁재료": "..."}}]
     3. 냉장고 재료가 활용되면 재료 칸에 '이미있음'이라고 적으세요.
     """
@@ -54,6 +59,7 @@ def get_coupang_link(keyword):
 
 # --- [2. 화면 구성] ---
 st.set_page_config(page_title="끼니워리 AI", layout="wide")
+
 st.sidebar.header("🏠 우리 집 정보")
 selected_meals = st.sidebar.multiselect("🍱 식단 선택", ["아침", "점심", "저녁"], default=["저녁"])
 avoid_food = st.sidebar.text_input("❌ 못 먹는 재료", placeholder="예: 오이, 땅콩")
@@ -69,11 +75,9 @@ if st.sidebar.button("✨ AI 맞춤 식단 생성"):
             st.subheader("🗓️ 이번 주 맞춤 식단표")
             st.info("💡 메뉴를 클릭하면 '만개의레시피' 조리법으로 연결됩니다.")
             
-            # 식단표 예쁘게 출력
             df = pd.DataFrame(meal_plan).set_index('요일')
             display_cols = [m for m in ["아침", "점심", "저녁"] if m in selected_meals]
             
-            # 클릭 가능한 링크로 변환하여 출력
             for day in ["월", "화", "수", "목", "금", "토", "일"]:
                 cols = st.columns([1] + [2]*len(display_cols))
                 cols[0].write(f"**{day}**")
@@ -100,4 +104,4 @@ if st.sidebar.button("✨ AI 맞춤 식단 생성"):
                     c[idx % 3].link_button(f"👉 {item} 구매", link)
             st.balloons()
         except Exception as e:
-            st.error("AI와 대화 중 오류가 났어요. 다시 시도해 주세요!")
+            st.error("AI가 식단을 짜는 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요!")
