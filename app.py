@@ -8,8 +8,8 @@ import json
 import random # 🌟 랜덤 기능을 위해 추가!
 
 # --- [1. 쿠팡 API 설정] ---
-ACCESS_KEY = "79a39820-24f1-4f82-9f85-1a057ef8e147"
-SECRET_KEY = "f1dff873f80f9600417e3dca6359bff5d68e7a42"
+ACCESS_KEY = st.secrets["ACCESS_KEY"]
+SECRET_KEY = st.secrets["SECRET_KEY"]
 
 def get_coupang_deep_link(keyword):
     domain = "https://api-gateway.coupang.com"
@@ -35,7 +35,7 @@ selected_meals = st.sidebar.multiselect("🍱 식단 선택", ["아침", "점심
 budget = st.sidebar.number_input("일주일 예산 (원)", 120000)
 fridge = st.sidebar.text_area("냉장고 재료", "양파, 파프리카, 양상추")
 
-st.title("🚀 중복 방지 스마트 식단 매니저")
+st.title("🚀 우리 집 스마트 식단 매니저")
 
 if st.sidebar.button("✨ 새로운 식단 생성하기"):
     if not selected_meals:
@@ -92,12 +92,12 @@ if st.sidebar.button("✨ 새로운 식단 생성하기"):
             st.table(pd.DataFrame(final_rows).set_index('요일'))
             
             st.divider()
-            st.subheader("🛒 실시간 수익 링크 (중복 제거)")
+            st.subheader("🛒 쿠팡에서 장보기 ")
             
             cols = st.columns(3)
             for idx, item in enumerate(sorted(list(shopping_set))):
                 with cols[idx % 3]:
                     link = get_coupang_deep_link(item)
-                    st.link_button(f"👉 {item} 최저가", link)
+                    st.link_button(f"👉 {item} 담기", link)
                     
         st.balloons()
